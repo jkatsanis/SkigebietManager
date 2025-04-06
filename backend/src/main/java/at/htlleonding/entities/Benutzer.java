@@ -2,7 +2,11 @@ package at.htlleonding.entities;
 import jakarta.persistence.*;
 
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
@@ -19,18 +23,22 @@ public abstract class Benutzer {
             inverseJoinColumns = @JoinColumn(name = "ticket_id"))
     private List<Ticket> tickets;
 
-    // Getter & Setter
 }
 
-
+@Getter
+@Setter
 @Entity
 @DiscriminatorValue("Gast")
-class Gast extends Benutzer {}
-
+class Gast extends Benutzer {
+    
+}
+@Getter
+@Setter
 @Entity
 @DiscriminatorValue("Mitarbeiter")
 class Mitarbeiter extends Benutzer {}
-
+@Getter
+@Setter
 @Entity
 @DiscriminatorValue("Admin")
 class Admin extends Benutzer {}

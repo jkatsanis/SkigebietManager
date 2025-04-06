@@ -1,7 +1,10 @@
 package at.htlleonding.entities;
 import jakarta.persistence.*;
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 public class Piste {
     @Id
@@ -15,5 +18,4 @@ public class Piste {
     @JoinColumn(name = "skilift_id")
     private Skilift skiLift;
 
-    // Getter & Setter
 }

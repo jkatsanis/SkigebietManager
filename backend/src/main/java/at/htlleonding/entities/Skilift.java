@@ -1,7 +1,11 @@
 package at.htlleonding.entities;
 import jakarta.persistence.*;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 public class Skilift {
     @Id
@@ -14,5 +18,4 @@ public class Skilift {
     @OneToMany(mappedBy = "skiLift")
     private List<Piste> pisten;
 
-    // Getter & Setter
 }

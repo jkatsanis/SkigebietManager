@@ -1,0 +1,115 @@
+= Projektbeschreibung
+
+Dieses Projekt ist ein Skigebietsverwaltungssystem, das verschiedene Entitäten wie Benutzer, Tickets, Skilifte und Pisten umfasst. Das System ist darauf ausgelegt, Benutzerrollen, Tickettypen und die Beziehungen zwischen Skiliften und Pisten zu verwalten. Die Hauptentitäten sind:
+
+- **Benutzer**: Eine Klasse, die einen Benutzer darstellt. Es gibt Drei verschiedene: `Gast`, `Mitarbeiter` und `Admin`.
+- **Ticket**: Eine Klasse, die ein Ticket darstellt. Es gibt Drei varianten: `Tageskarte`, `Wochenkarte` und `Saisonkarte`.
+- **Piste**: Stellt eine Skipiste mit den Eigenschaften `name`, `schwierigkeitsgrad` und `laenge` dar. Jede Piste ist einem Skilift zugeordnet.
+- **SkiLift**: Stellt einen Skilift mit dar und welchen `typ` er hat. Jeder Skilift kann mehrere Pisten haben.
+
+== Beschreibung der Abfragen
+
+=== Einfache Abfragen
+
+1. **Gib alle Benutzer mit einer bestimmten E-Mail-Adresse aus**
+
+2. **Gib alle Pisten mit einem bestimmten Schwierigkeitsgrad aus**
+
+=== Komplexere Abfragen
+
+1. **Gib die Anzahl der Tickets pro Benutzer aus**
+
+2. **Gib die durchschnittliche Länge der Pisten pro Skilift aus**
+
+3. **Gib die Gesamtkapazität aller Skilifte aus, die Pisten mit einem bestimmten Schwierigkeitsgrad haben**
+
+== Entity-Relationship-Diagramm
+
+[plantuml]
+----
+@startuml
+
+entity Benutzer {
+    id
+    name
+    email
+}
+
+entity Gast {
+    registrierungsdatum
+}
+
+entity Mitarbeiter {
+    personalnummer
+    abteilung
+}
+
+entity Admin {
+    berechtigungslevel
+}
+
+Benutzer <|-- Gast
+Benutzer <|-- Mitarbeiter
+Benutzer <|-- Admin
+
+entity Ticket {
+    id
+    preis
+}
+
+entity Tageskarte {
+    start_Zeit
+    end_Zeit
+}
+
+entity Wochenkarte {
+    start_Tag
+    end_Tag
+}
+
+entity Saisonkarte {
+    saison
+}
+
+Ticket <|-- Tageskarte
+Ticket <|-- Wochenkarte
+Ticket <|-- Saisonkarte
+
+entity Piste {
+    id
+    name
+    schwierigkeitsgrad
+    laenge
+    status
+}
+
+entity SkiLift {
+    id
+    name
+    typ
+    kapazität
+    betriebsstatus
+}
+
+entity BenutzerPiste {
+    benutzer_id
+    piste_id
+    zugriffszeitraum
+}
+
+entity PisteSkiLift {
+    piste_id
+    skilift_id
+    zugriffszeitraum
+}
+
+Benutzer "n" -- "1" Ticket : besitzt >
+
+PisteSkiLift "n" -- "1" Piste
+PisteSkiLift "n" -- "1" SkiLift
+BenutzerPiste "n" -- "1" Benutzer
+BenutzerPiste "n" -- "1" Piste
+
+@enduml
+
+----
