@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 
-const url = "https://api.example.com"; // Base API URL
+const url = "http://localhost:8080"; // Base API URL
 
 function App() {
   const [userTickets, setUserTickets] = useState(null);
@@ -9,6 +9,57 @@ function App() {
   const [pistenCount, setPistenCount] = useState(null);
   const [usersForPiste, setUsersForPiste] = useState(null);
   const [skiLiftsWithDifficulty, setSkiLiftsWithDifficulty] = useState(null);
+  
+  // New Piste Data
+  const [newPiste, setNewPiste] = useState({
+    name: '',
+    schwierigkeitsgrad: '',
+    laenge: '',
+    skiLiftId: ''
+  });
+
+  // Handle input changes for the Add Piste form
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewPiste(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
+
+  // Add a new Piste via POST request
+  const addPiste = (e) => {
+    e.preventDefault();
+    
+    const data = {
+      name: newPiste.name,
+      schwierigkeitsgrad: newPiste.schwierigkeitsgrad,
+      laenge: parseFloat(newPiste.laenge),
+      skiLiftId: parseInt(newPiste.skiLiftId)
+    };
+
+    fetch(`${url}/api/pisten`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then((data) => {
+      console.log('Piste added:', data);
+      // Optionally reset the form after successful submission
+      setNewPiste({
+        name: '',
+        schwierigkeitsgrad: '',
+        laenge: '',
+        skiLiftId: ''
+      });
+    })
+    .catch((error) => {
+      console.error('Error adding Piste:', error);
+    });
+  };
 
   // Fetch tickets for a specific Benutzer (user)
   const fetchUserTickets = (userId) => {
@@ -52,6 +103,52 @@ function App() {
 
   return (
     <div className="App">
+      {/* Add Piste Form */}
+      <h3>Add a new Piste</h3>
+      <form onSubmit={addPiste}>
+        <div>
+          <label>Name: </label>
+          <input
+            type="text"
+            name="name"
+            value={newPiste.name}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Schwierigkeitsgrad: </label>
+          <input
+            type="text"
+            name="schwierigkeitsgrad"
+            value={newPiste.schwierigkeitsgrad}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>Länge: </label>
+          <input
+            type="number"
+            name="laenge"
+            value={newPiste.laenge}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <div>
+          <label>SkiLift ID: </label>
+          <input
+            type="number"
+            name="skiLiftId"
+            value={newPiste.skiLiftId}
+            onChange={handleInputChange}
+            required
+          />
+        </div>
+        <button type="submit">Add Piste</button>
+      </form>
+
       <button onClick={() => fetchUserTickets(1)}>Get Tickets for Benutzer 1 (Complex)</button>
       {userTickets && (
         <div>
