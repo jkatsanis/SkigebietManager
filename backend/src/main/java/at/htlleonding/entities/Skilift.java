@@ -3,7 +3,7 @@ import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
-class SkiLift {
+public class Skilift {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

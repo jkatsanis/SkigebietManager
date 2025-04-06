@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import './App.css';
+import PistenList from './Piste/Pistenlist';
+import PisteForm from './Piste/PisteAdder';
+import SkiLiftDisplay from './Skilift/SkiLift';
+import SkiLiftForm from './Skilift/SkiLiftForm';
 
 const url = "http://localhost:8080"; // Base API URL
 
@@ -27,40 +31,7 @@ function App() {
     }));
   };
 
-  // Add a new Piste via POST request
-  const addPiste = (e) => {
-    e.preventDefault();
-    
-    const data = {
-      name: newPiste.name,
-      schwierigkeitsgrad: newPiste.schwierigkeitsgrad,
-      laenge: parseFloat(newPiste.laenge),
-      skiLiftId: parseInt(newPiste.skiLiftId)
-    };
-
-    fetch(`${url}/api/pisten`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then((data) => {
-      console.log('Piste added:', data);
-      // Optionally reset the form after successful submission
-      setNewPiste({
-        name: '',
-        schwierigkeitsgrad: '',
-        laenge: '',
-        skiLiftId: ''
-      });
-    })
-    .catch((error) => {
-      console.error('Error adding Piste:', error);
-    });
-  };
-
+ 
   // Fetch tickets for a specific Benutzer (user)
   const fetchUserTickets = (userId) => {
     fetch(`${url}/api/tickets/${userId}`)
@@ -102,52 +73,18 @@ function App() {
   };
 
   return (
-    <div className="App">
-      {/* Add Piste Form */}
-      <h3>Add a new Piste</h3>
-      <form onSubmit={addPiste}>
-        <div>
-          <label>Name: </label>
-          <input
-            type="text"
-            name="name"
-            value={newPiste.name}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Schwierigkeitsgrad: </label>
-          <input
-            type="text"
-            name="schwierigkeitsgrad"
-            value={newPiste.schwierigkeitsgrad}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Länge: </label>
-          <input
-            type="number"
-            name="laenge"
-            value={newPiste.laenge}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div>
-          <label>SkiLift ID: </label>
-          <input
-            type="number"
-            name="skiLiftId"
-            value={newPiste.skiLiftId}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <button type="submit">Add Piste</button>
-      </form>
+    <div className="App">#
+
+<SkiLiftDisplay/>
+
+    <SkiLiftForm/>
+
+    <hr/>
+    <hr/>
+
+    <PistenList />  {/* Use the PistenList component here */}
+
+    <PisteForm/>
 
       <button onClick={() => fetchUserTickets(1)}>Get Tickets for Benutzer 1 (Complex)</button>
       {userTickets && (

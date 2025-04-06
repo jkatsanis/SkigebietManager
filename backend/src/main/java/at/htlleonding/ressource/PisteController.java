@@ -20,8 +20,29 @@ public class PisteController {
     PisteRepository pisteRepository;
 
     @POST
+    @Transactional
     public Response addPiste(Piste piste) {
         pisteRepository.persist(piste); // Save the piste to the database
         return Response.status(Response.Status.CREATED).entity(piste).build(); // Return the created piste with a 201 status
+    }
+
+    @GET
+    @Path("/{id}") // URL path will be /piste/{id}
+    public Response getPiste(@PathParam("id") Long id) {
+        Piste piste = pisteRepository.findById(id); // Use the repository to find a Piste by ID
+
+        if (piste == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Piste not found").build(); // Return 404 if Piste not found
+        }
+
+        return Response.ok(piste).build(); // Return the Piste if found
+    }
+
+    @GET
+    public Response getAllPisten() {
+        List<Piste> pisten = pisteRepository.listAll(); // Use the repository to fetch all Pisten
+
+
+        return Response.ok(pisten).build(); // Return the list of Pisten if found
     }
 }

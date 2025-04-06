@@ -13,7 +13,7 @@ public class Piste {
 
     @ManyToOne
     @JoinColumn(name = "skilift_id")
-    private SkiLift skiLift;
+    private Skilift skiLift;
 
     // Getter & Setter
 }
