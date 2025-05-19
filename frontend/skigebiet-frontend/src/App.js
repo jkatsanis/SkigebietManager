@@ -287,34 +287,7 @@ function App() {
             )}
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Select Piste:</label>
-              <select
-                value={selectedPisteId}
-                onChange={(e) => setSelectedPisteId(parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              >
-                {pisteService.getAll().map(piste => (
-                  <option key={piste.id} value={piste.id}>
-                    {piste.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button 
-              onClick={() => fetchUsersForPiste(selectedPisteId)}
-              className="w-full bg-ski-blue text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors"
-            >
-              Get Users for Selected Piste
-            </button>
-            {usersForPiste && (
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold text-mountain-gray mb-2">Users for Selected Piste:</h3>
-                <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto">{JSON.stringify(usersForPiste, null, 2)}</pre>
-              </div>
-            )}
-          </div>
+          
 
           <div className="bg-white rounded-lg shadow-md p-6">
             <button 
