@@ -1,4 +1,5 @@
 package at.htlleonding.entities;
+import at.htlleonding.skigebietmanager.entities.Ticket;
 import jakarta.persistence.*;
 
 import java.util.List;

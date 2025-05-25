@@ -1,6 +1,6 @@
-package at.htlleonding.repositories;
+package at.htlleonding.skigebietmanager.repositories;
 
-import at.htlleonding.entities.Ticket;
+import at.htlleonding.skigebietmanager.entities.Ticket;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
@@ -26,5 +26,9 @@ public class TicketRepository implements PanacheRepository<Ticket> {
             "GROUP BY MONTH(t.createdAt) " +
             "ORDER BY MONTH(t.createdAt)"
         ).getResultList();
+    }
+
+    public List<Ticket> findByUserId(Long userId) {
+        return find("user.id", userId).list();
     }
 } 
