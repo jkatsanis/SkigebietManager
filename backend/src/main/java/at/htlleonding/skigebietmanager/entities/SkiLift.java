@@ -7,7 +7,8 @@ import java.util.List;
 @Table(name = "ski_lifts")
 public class SkiLift {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "ski_lift_seq")
+    @SequenceGenerator(name = "ski_lift_seq", sequenceName = "ski_lift_seq", allocationSize = 1)
     private Long id;
 
     @Column(nullable = false)

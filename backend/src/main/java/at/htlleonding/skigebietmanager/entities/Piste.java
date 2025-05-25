@@ -6,7 +6,8 @@ import jakarta.persistence.*;
 @Table(name = "pisten")
 public class Piste {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "piste_seq")
+    @SequenceGenerator(name = "piste_seq", sequenceName = "piste_seq", allocationSize = 1)
     private Long id;
 
     @Column(nullable = false)

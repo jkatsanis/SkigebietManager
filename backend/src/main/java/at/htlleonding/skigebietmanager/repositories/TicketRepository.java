@@ -4,6 +4,8 @@ import at.htlleonding.skigebietmanager.entities.Ticket;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class TicketRepository implements PanacheRepository<Ticket> {
@@ -30,5 +32,13 @@ public class TicketRepository implements PanacheRepository<Ticket> {
 
     public List<Ticket> findByUserId(Long userId) {
         return find("user.id", userId).list();
+    }
+
+    public Map<String, Long> countByTicketType() {
+        return listAll().stream()
+            .collect(Collectors.groupingBy(
+                Ticket::getTicketType,
+                Collectors.counting()
+            ));
     }
 } 
