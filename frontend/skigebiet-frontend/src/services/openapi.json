@@ -1,0 +1,687 @@
+---
+openapi: 3.1.0
+components:
+  schemas:
+    LocalDate:
+      type: string
+      format: date
+    LocalTime:
+      type: string
+      format: local-time
+      externalDocs:
+        description: As defined by 'partial-time' in RFC3339
+        url: https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6
+    PisteDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        schwierigkeitsgrad:
+          type: string
+        laenge:
+          type: number
+          format: double
+        skiLift:
+          $ref: "#/components/schemas/SkiLiftDTO"
+    SkiLiftDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        typ:
+          type: string
+        kapazitaet:
+          type: integer
+          format: int32
+    TicketDTO:
+      type: object
+      required:
+      - ticketType
+      - date
+      - validFrom
+      - validUntil
+      description: Ticket data transfer object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier of the ticket
+          example: 1
+        ticketType:
+          type: string
+          description: Type of the ticket
+          example: Ganztages
+        date:
+          $ref: "#/components/schemas/LocalDate"
+          type: string
+          description: Date of the ticket
+          example: 2024-03-20
+        validFrom:
+          $ref: "#/components/schemas/LocalTime"
+          type: string
+          description: Valid from time
+          example: 08:00
+        validUntil:
+          $ref: "#/components/schemas/LocalTime"
+          type: string
+          description: Valid until time
+          example: 16:00
+        user:
+          $ref: "#/components/schemas/UserDTO"
+          type: object
+          description: Associated user information
+    UserDTO:
+      type: object
+      required:
+      - name
+      - email
+      description: User data transfer object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Unique identifier of the user
+          example: 1
+        name:
+          type: string
+          description: Name of the user
+          example: Max Mustermann
+        email:
+          type: string
+          description: Email address of the user
+          example: max@example.com
+paths:
+  /api/pisten:
+    get:
+      summary: Get all pisten
+      description: Retrieves a list of all ski slopes in the system
+      tags:
+      - Piste Management
+      responses:
+        "200":
+          description: List of pisten retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PisteDTO"
+    post:
+      summary: Create new piste
+      description: Creates a new ski slope in the system
+      tags:
+      - Piste Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PisteDTO"
+        required: true
+      responses:
+        "201":
+          description: Piste created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PisteDTO"
+        "400":
+          description: Invalid input data
+  /api/pisten/skilift/{skiLiftId}:
+    get:
+      summary: Get pisten by ski lift
+      description: Retrieves all ski slopes associated with a specific ski lift
+      tags:
+      - Piste Management
+      parameters:
+      - description: Ski lift ID
+        required: true
+        name: skiLiftId
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: List of pisten retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PisteDTO"
+        "404":
+          description: Ski lift not found
+  /api/pisten/{id}:
+    put:
+      summary: Update piste
+      description: Updates an existing ski slope's information
+      tags:
+      - Piste Management
+      parameters:
+      - description: Piste ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PisteDTO"
+        required: true
+      responses:
+        "200":
+          description: Piste updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PisteDTO"
+        "404":
+          description: Piste not found
+        "400":
+          description: Bad Request
+    get:
+      summary: Get piste by ID
+      description: Retrieves a specific ski slope by its ID
+      tags:
+      - Piste Management
+      parameters:
+      - description: Piste ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Piste found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PisteDTO"
+        "404":
+          description: Piste not found
+    delete:
+      summary: Delete piste
+      description: Deletes a ski slope from the system
+      tags:
+      - Piste Management
+      parameters:
+      - description: Piste ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: Piste deleted successfully
+        "404":
+          description: Piste not found
+  /api/skilifts:
+    get:
+      summary: Get all ski lifts
+      description: Retrieves a list of all ski lifts in the system
+      tags:
+      - Ski Lift Management
+      responses:
+        "200":
+          description: List of ski lifts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SkiLiftDTO"
+    post:
+      summary: Create new ski lift
+      description: Creates a new ski lift in the system
+      tags:
+      - Ski Lift Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkiLiftDTO"
+        required: true
+      responses:
+        "201":
+          description: Ski lift created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkiLiftDTO"
+        "400":
+          description: Invalid input data
+  /api/skilifts/{id}:
+    put:
+      summary: Update ski lift
+      description: Updates an existing ski lift's information
+      tags:
+      - Ski Lift Management
+      parameters:
+      - description: Ski lift ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SkiLiftDTO"
+        required: true
+      responses:
+        "200":
+          description: Ski lift updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkiLiftDTO"
+        "404":
+          description: Ski lift not found
+        "400":
+          description: Bad Request
+    get:
+      summary: Get ski lift by ID
+      description: Retrieves a specific ski lift by its ID
+      tags:
+      - Ski Lift Management
+      parameters:
+      - description: Ski lift ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Ski lift found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SkiLiftDTO"
+        "404":
+          description: Ski lift not found
+    delete:
+      summary: Delete ski lift
+      description: Deletes a ski lift from the system
+      tags:
+      - Ski Lift Management
+      parameters:
+      - description: Ski lift ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: Ski lift deleted successfully
+        "404":
+          description: Ski lift not found
+  /api/skilifts/{id}/pisten:
+    get:
+      summary: Get ski lift pisten
+      description: Retrieves all ski slopes associated with a specific ski lift
+      tags:
+      - Ski Lift Management
+      parameters:
+      - description: Ski lift ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: List of pisten retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PisteDTO"
+        "404":
+          description: Ski lift not found
+  /api/statistics:
+    get:
+      summary: Get system statistics
+      description: Retrieves comprehensive statistics about the ski resort system
+      tags:
+      - Statistics
+      responses:
+        "200":
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Map containing various system statistics
+  /api/tickets:
+    get:
+      summary: Get all tickets
+      description: Retrieves a list of all tickets in the system
+      tags:
+      - Ticket Management
+      responses:
+        "200":
+          description: List of tickets retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TicketDTO"
+    post:
+      summary: Create new ticket
+      description: Creates a new ticket in the system
+      tags:
+      - Ticket Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketDTO"
+        required: true
+      responses:
+        "201":
+          description: Ticket created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketDTO"
+        "400":
+          description: Invalid input data
+  /api/tickets/user/{userId}:
+    get:
+      summary: Get tickets by user
+      description: Retrieves all tickets associated with a specific user
+      tags:
+      - Ticket Management
+      parameters:
+      - description: User ID
+        required: true
+        name: userId
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: List of tickets retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TicketDTO"
+        "404":
+          description: User not found
+  /api/tickets/{id}:
+    put:
+      summary: Update ticket
+      description: Updates an existing ticket's information
+      tags:
+      - Ticket Management
+      parameters:
+      - description: Ticket ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketDTO"
+        required: true
+      responses:
+        "200":
+          description: Ticket updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketDTO"
+        "404":
+          description: Ticket not found
+        "400":
+          description: Bad Request
+    get:
+      summary: Get ticket by ID
+      description: Retrieves a specific ticket by its ID
+      tags:
+      - Ticket Management
+      parameters:
+      - description: Ticket ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Ticket found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TicketDTO"
+        "404":
+          description: Ticket not found
+    delete:
+      summary: Delete ticket
+      description: Deletes a ticket from the system
+      tags:
+      - Ticket Management
+      parameters:
+      - description: Ticket ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: Ticket deleted successfully
+        "404":
+          description: Ticket not found
+  /api/users:
+    get:
+      summary: Get all users
+      description: Retrieves a list of all users in the system
+      tags:
+      - User Management
+      responses:
+        "200":
+          description: List of users retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserDTO"
+    post:
+      summary: Create new user
+      description: Creates a new user in the system
+      tags:
+      - User Management
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserDTO"
+        required: true
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        "400":
+          description: Invalid input data
+        "409":
+          description: User with this email already exists
+  /api/users/email/{email}:
+    get:
+      summary: Get user by email
+      description: Retrieves a specific user by their email address
+      tags:
+      - User Management
+      parameters:
+      - description: User email
+        required: true
+        name: email
+        in: path
+        schema:
+          type: string
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        "404":
+          description: User not found
+  /api/users/{id}:
+    put:
+      summary: Update user
+      description: Updates an existing user's information
+      tags:
+      - User Management
+      parameters:
+      - description: User ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserDTO"
+        required: true
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        "404":
+          description: User not found
+        "400":
+          description: Bad Request
+    get:
+      summary: Get user by ID
+      description: Retrieves a specific user by their ID
+      tags:
+      - User Management
+      parameters:
+      - description: User ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        "404":
+          description: User not found
+    delete:
+      summary: Delete user
+      description: Deletes a user from the system
+      tags:
+      - User Management
+      parameters:
+      - description: User ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "204":
+          description: User deleted successfully
+        "404":
+          description: User not found
+  /api/users/{id}/tickets:
+    get:
+      summary: Get user tickets
+      description: Retrieves all tickets for a specific user
+      tags:
+      - User Management
+      parameters:
+      - description: User ID
+        required: true
+        name: id
+        in: path
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Tickets retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TicketDTO"
+        "404":
+          description: User not found
+  /hello:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+      summary: Hello
+      tags:
+      - Greeting Resource
+tags:
+- name: Piste Management
+  description: Operations for managing ski slopes (pisten)
+- name: Ski Lift Management
+  description: Operations for managing ski lifts
+- name: Statistics
+  description: Operations for retrieving system statistics
+- name: Ticket Management
+  description: Operations for managing ski tickets
+- name: User Management
+  description: Operations for managing users
+info:
+  title: skigebietmanager API
+  version: 1.0.0-SNAPSHOT

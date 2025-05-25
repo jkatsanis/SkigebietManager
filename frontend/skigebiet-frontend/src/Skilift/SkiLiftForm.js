@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-
-const url = "http://localhost:8080"; // Replace with your backend API URL
+import { skiLiftService } from '../services/localStorageService';
 
 function SkiLiftForm() {
     const [name, setName] = useState('');
@@ -10,7 +8,7 @@ function SkiLiftForm() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         setError('');
         setSuccess(false);
@@ -22,8 +20,7 @@ function SkiLiftForm() {
         };
 
         try {
-            const response = await axios.post(`${url}/skilift`, newSkiLift);
-            console.log('SkiLift created:', response.data);
+            skiLiftService.create(newSkiLift);
             setSuccess(true);
             // Clear the form after submission
             setName('');
@@ -76,10 +73,9 @@ function SkiLiftForm() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ski-blue focus:border-ski-blue"
                         required
                     >
-                        <option value="">Select type</option>
+                        <option value="">Select a type</option>
                         <option value="Sessellift">Sessellift</option>
                         <option value="Schlepplift">Schlepplift</option>
-                        <option value="Gondel">Gondel</option>
                     </select>
                 </div>
 

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-
-const url = "http://localhost:8080"; // Replace with your backend API URL
+import { skiLiftService } from '../services/localStorageService';
 
 function SkiLiftDisplay() {
     const [skiLifts, setSkiLifts] = useState([]);
@@ -9,21 +7,17 @@ function SkiLiftDisplay() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch the list of SkiLifts from the backend API when the component mounts
-        const fetchSkiLifts = async () => {
-            try {
-                const response = await axios.get(`${url}/skilift`);
-                setSkiLifts(response.data); // Set the retrieved data in state
-                setLoading(false);
-            } catch (err) {
-                console.error('Error fetching SkiLifts:', err);
-                setError('Failed to fetch SkiLifts. Please try again later.');
-                setLoading(false);
-            }
-        };
-
-        fetchSkiLifts(); // Call the function to fetch data
-    }, []); // Empty dependency array ensures this runs only once when the component mounts
+        // Fetch the list of SkiLifts from localStorage when the component mounts
+        try {
+            const data = skiLiftService.getAll();
+            setSkiLifts(data);
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching SkiLifts:', err);
+            setError('Failed to fetch SkiLifts. Please try again later.');
+            setLoading(false);
+        }
+    }, []);
 
     const getTypeIcon = (type) => {
         switch (type.toLowerCase()) {

@@ -1,17 +1,30 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-
-const url = "http://localhost:8080"; // Replace with your backend API URL
+import React, { useState, useEffect } from 'react';
+import { pisteService, skiLiftService } from '../services/localStorageService';
 
 function PisteForm() {
     const [name, setName] = useState('');
     const [schwierigkeitsgrad, setSchwierigkeitsgrad] = useState('');
     const [laenge, setLaenge] = useState('');
     const [skiliftId, setSkiliftId] = useState('');
+    const [skiLifts, setSkiLifts] = useState([]);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState(null);
 
-    const handleSubmit = async (e) => {
+    useEffect(() => {
+        // Load available ski lifts
+        const loadSkiLifts = () => {
+            try {
+                const data = skiLiftService.getAll();
+                setSkiLifts(data);
+            } catch (err) {
+                console.error('Error loading ski lifts:', err);
+                setError('Failed to load ski lifts');
+            }
+        };
+        loadSkiLifts();
+    }, []);
+
+    const handleSubmit = (e) => {
         e.preventDefault();
         setSuccess(false);
         setError(null);
@@ -26,8 +39,7 @@ function PisteForm() {
         };
 
         try {
-            const response = await axios.post(`${url}/piste`, newPiste);
-            console.log('Piste created:', response.data);
+            pisteService.create(newPiste);
             setSuccess(true);
             // Reset form
             setName('');
@@ -67,12 +79,13 @@ function PisteForm() {
                         onChange={(e) => setName(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ski-blue focus:border-ski-blue"
                         required
+                        placeholder="Enter piste name"
                     />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Schwierigkeitsgrad
+                        Difficulty
                     </label>
                     <select
                         value={schwierigkeitsgrad}
@@ -81,46 +94,56 @@ function PisteForm() {
                         required
                     >
                         <option value="">Select difficulty</option>
-                        <option value="leicht">Leicht</option>
-                        <option value="mittel">Mittel</option>
-                        <option value="schwer">Schwer</option>
+                        <option value="Leicht">Leicht</option>
+                        <option value="Mittel">Mittel</option>
+                        <option value="Schwer">Schwer</option>
                     </select>
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Länge (in meters)
+                        Length (km)
                     </label>
                     <input
                         type="number"
                         value={laenge}
                         onChange={(e) => setLaenge(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ski-blue focus:border-ski-blue"
-                        min="0"
                         required
+                        min="0.1"
+                        step="0.1"
+                        placeholder="Enter length in kilometers"
                     />
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Skilift ID
+                        Ski Lift
                     </label>
-                    <input
-                        type="number"
+                    <select
                         value={skiliftId}
                         onChange={(e) => setSkiliftId(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ski-blue focus:border-ski-blue"
-                        min="1"
                         required
-                    />
+                    >
+                        <option value="">Select a ski lift</option>
+                        {skiLifts.map((skiLift) => (
+                            <option key={skiLift.id} value={skiLift.id}>
+                                {skiLift.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className="pt-4">
                     <button
                         type="submit"
-                        className="w-full bg-ski-blue text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ski-blue"
+                        className="w-full bg-ski-blue text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ski-blue flex items-center justify-center space-x-2"
                     >
-                        Add Piste
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                        </svg>
+                        <span>Add Piste</span>
                     </button>
                 </div>
             </form>

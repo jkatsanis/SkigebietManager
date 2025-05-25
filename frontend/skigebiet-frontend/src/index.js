@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './styles/output.css';
+import './styles/notifications.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
