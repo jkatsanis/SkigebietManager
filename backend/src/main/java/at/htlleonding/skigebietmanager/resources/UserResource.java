@@ -12,6 +12,13 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.persistence.PersistenceException;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +27,7 @@ import java.util.stream.Collectors;
 @Path("/api/users")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "User Management", description = "Operations for managing users")
 public class UserResource {
 
     @Inject
@@ -30,6 +38,10 @@ public class UserResource {
 
     @GET
     @Transactional
+    @Operation(summary = "Get all users", description = "Retrieves a list of all users in the system")
+    @APIResponse(responseCode = "200", description = "List of users retrieved successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = UserDTO.class, type = SchemaType.ARRAY)))
     public List<UserDTO> getAllUsers() {
         return userRepository.listAll().stream()
                 .map(this::convertToDTO)
@@ -39,7 +51,13 @@ public class UserResource {
     @GET
     @Path("/{id}")
     @Transactional
-    public Response getUserById(@PathParam("id") Long id) {
+    @Operation(summary = "Get user by ID", description = "Retrieves a specific user by their ID")
+    @APIResponse(responseCode = "200", description = "User found",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = UserDTO.class)))
+    @APIResponse(responseCode = "404", description = "User not found")
+    public Response getUserById(
+        @Parameter(description = "User ID", required = true) @PathParam("id") Long id) {
         User user = userRepository.findById(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -50,7 +68,13 @@ public class UserResource {
     @GET
     @Path("/email/{email}")
     @Transactional
-    public Response getUserByEmail(@PathParam("email") String email) {
+    @Operation(summary = "Get user by email", description = "Retrieves a specific user by their email address")
+    @APIResponse(responseCode = "200", description = "User found",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = UserDTO.class)))
+    @APIResponse(responseCode = "404", description = "User not found")
+    public Response getUserByEmail(
+        @Parameter(description = "User email", required = true) @PathParam("email") String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -60,7 +84,14 @@ public class UserResource {
 
     @POST
     @Transactional
-    public Response createUser(UserDTO userDTO) {
+    @Operation(summary = "Create new user", description = "Creates a new user in the system")
+    @APIResponse(responseCode = "201", description = "User created successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = UserDTO.class)))
+    @APIResponse(responseCode = "400", description = "Invalid input data")
+    @APIResponse(responseCode = "409", description = "User with this email already exists")
+    public Response createUser(
+        @Parameter(description = "User data", required = true) UserDTO userDTO) {
         try {
             if (userDTO == null) {
                 return Response.status(Response.Status.BAD_REQUEST)
@@ -74,7 +105,6 @@ public class UserResource {
                         .build();
             }
 
-            // Check if user with this email already exists
             Optional<User> existingUser = userRepository.findByEmail(userDTO.getEmail());
             if (existingUser.isPresent()) {
                 return Response.status(Response.Status.CONFLICT)
@@ -87,7 +117,7 @@ public class UserResource {
             user.setEmail(userDTO.getEmail());
 
             userRepository.persist(user);
-            userRepository.flush(); // Ensure the entity is persisted
+            userRepository.flush();
 
             return Response.status(Response.Status.CREATED)
                     .entity(convertToDTO(user))
@@ -106,7 +136,14 @@ public class UserResource {
     @PUT
     @Path("/{id}")
     @Transactional
-    public Response updateUser(@PathParam("id") Long id, UserDTO userDTO) {
+    @Operation(summary = "Update user", description = "Updates an existing user's information")
+    @APIResponse(responseCode = "200", description = "User updated successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = UserDTO.class)))
+    @APIResponse(responseCode = "404", description = "User not found")
+    public Response updateUser(
+        @Parameter(description = "User ID", required = true) @PathParam("id") Long id,
+        @Parameter(description = "Updated user data", required = true) UserDTO userDTO) {
         User user = userRepository.findById(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -120,7 +157,11 @@ public class UserResource {
     @DELETE
     @Path("/{id}")
     @Transactional
-    public Response deleteUser(@PathParam("id") Long id) {
+    @Operation(summary = "Delete user", description = "Deletes a user from the system")
+    @APIResponse(responseCode = "204", description = "User deleted successfully")
+    @APIResponse(responseCode = "404", description = "User not found")
+    public Response deleteUser(
+        @Parameter(description = "User ID", required = true) @PathParam("id") Long id) {
         User user = userRepository.findById(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -132,7 +173,13 @@ public class UserResource {
     @GET
     @Path("/{id}/tickets")
     @Transactional
-    public Response getUserTickets(@PathParam("id") Long id) {
+    @Operation(summary = "Get user tickets", description = "Retrieves all tickets for a specific user")
+    @APIResponse(responseCode = "200", description = "Tickets retrieved successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = TicketDTO.class, type = SchemaType.ARRAY)))
+    @APIResponse(responseCode = "404", description = "User not found")
+    public Response getUserTickets(
+        @Parameter(description = "User ID", required = true) @PathParam("id") Long id) {
         User user = userRepository.findById(id);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND).build();

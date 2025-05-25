@@ -11,6 +11,13 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +25,7 @@ import java.util.stream.Collectors;
 @Path("/api/tickets")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Ticket Management", description = "Operations for managing ski tickets")
 public class TicketResource {
 
     @Inject
@@ -28,6 +36,10 @@ public class TicketResource {
 
     @GET
     @Transactional
+    @Operation(summary = "Get all tickets", description = "Retrieves a list of all tickets in the system")
+    @APIResponse(responseCode = "200", description = "List of tickets retrieved successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = TicketDTO.class, type = SchemaType.ARRAY)))
     public List<TicketDTO> getAllTickets() {
         return ticketRepository.listAll().stream()
                 .map(this::convertToDTO)
@@ -37,7 +49,13 @@ public class TicketResource {
     @GET
     @Path("/{id}")
     @Transactional
-    public Response getTicketById(@PathParam("id") Long id) {
+    @Operation(summary = "Get ticket by ID", description = "Retrieves a specific ticket by its ID")
+    @APIResponse(responseCode = "200", description = "Ticket found",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = TicketDTO.class)))
+    @APIResponse(responseCode = "404", description = "Ticket not found")
+    public Response getTicketById(
+        @Parameter(description = "Ticket ID", required = true) @PathParam("id") Long id) {
         Ticket ticket = ticketRepository.findById(id);
         if (ticket == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -48,7 +66,13 @@ public class TicketResource {
     @GET
     @Path("/user/{userId}")
     @Transactional
-    public Response getTicketsByUser(@PathParam("userId") Long userId) {
+    @Operation(summary = "Get tickets by user", description = "Retrieves all tickets associated with a specific user")
+    @APIResponse(responseCode = "200", description = "List of tickets retrieved successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = TicketDTO.class, type = SchemaType.ARRAY)))
+    @APIResponse(responseCode = "404", description = "User not found")
+    public Response getTicketsByUser(
+        @Parameter(description = "User ID", required = true) @PathParam("userId") Long userId) {
         User user = userRepository.findById(userId);
         if (user == null) {
             return Response.status(Response.Status.NOT_FOUND)
@@ -65,7 +89,13 @@ public class TicketResource {
 
     @POST
     @Transactional
-    public Response createTicket(TicketDTO ticketDTO) {
+    @Operation(summary = "Create new ticket", description = "Creates a new ticket in the system")
+    @APIResponse(responseCode = "201", description = "Ticket created successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = TicketDTO.class)))
+    @APIResponse(responseCode = "400", description = "Invalid input data")
+    public Response createTicket(
+        @Parameter(description = "Ticket data", required = true) TicketDTO ticketDTO) {
         Ticket ticket = new Ticket();
         ticket.setTicketType(ticketDTO.getTicketType());
         ticket.setDate(ticketDTO.getDate());
@@ -86,7 +116,14 @@ public class TicketResource {
     @PUT
     @Path("/{id}")
     @Transactional
-    public Response updateTicket(@PathParam("id") Long id, TicketDTO ticketDTO) {
+    @Operation(summary = "Update ticket", description = "Updates an existing ticket's information")
+    @APIResponse(responseCode = "200", description = "Ticket updated successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = TicketDTO.class)))
+    @APIResponse(responseCode = "404", description = "Ticket not found")
+    public Response updateTicket(
+        @Parameter(description = "Ticket ID", required = true) @PathParam("id") Long id,
+        @Parameter(description = "Updated ticket data", required = true) TicketDTO ticketDTO) {
         Ticket ticket = ticketRepository.findById(id);
         if (ticket == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -111,7 +148,11 @@ public class TicketResource {
     @DELETE
     @Path("/{id}")
     @Transactional
-    public Response deleteTicket(@PathParam("id") Long id) {
+    @Operation(summary = "Delete ticket", description = "Deletes a ticket from the system")
+    @APIResponse(responseCode = "204", description = "Ticket deleted successfully")
+    @APIResponse(responseCode = "404", description = "Ticket not found")
+    public Response deleteTicket(
+        @Parameter(description = "Ticket ID", required = true) @PathParam("id") Long id) {
         Ticket ticket = ticketRepository.findById(id);
         if (ticket == null) {
             return Response.status(Response.Status.NOT_FOUND).build();

@@ -11,6 +11,13 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +25,7 @@ import java.util.stream.Collectors;
 @Path("/api/pisten")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Piste Management", description = "Operations for managing ski slopes (pisten)")
 public class PisteResource {
 
     @Inject
@@ -28,6 +36,10 @@ public class PisteResource {
 
     @GET
     @Transactional
+    @Operation(summary = "Get all pisten", description = "Retrieves a list of all ski slopes in the system")
+    @APIResponse(responseCode = "200", description = "List of pisten retrieved successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = PisteDTO.class, type = SchemaType.ARRAY)))
     public List<PisteDTO> getAllPisten() {
         return pisteRepository.listAll().stream()
                 .map(this::convertToDTO)
@@ -37,7 +49,13 @@ public class PisteResource {
     @GET
     @Path("/{id}")
     @Transactional
-    public Response getPisteById(@PathParam("id") Long id) {
+    @Operation(summary = "Get piste by ID", description = "Retrieves a specific ski slope by its ID")
+    @APIResponse(responseCode = "200", description = "Piste found",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = PisteDTO.class)))
+    @APIResponse(responseCode = "404", description = "Piste not found")
+    public Response getPisteById(
+        @Parameter(description = "Piste ID", required = true) @PathParam("id") Long id) {
         Piste piste = pisteRepository.findById(id);
         if (piste == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -48,7 +66,13 @@ public class PisteResource {
     @GET
     @Path("/skilift/{skiLiftId}")
     @Transactional
-    public Response getPistenBySkiLift(@PathParam("skiLiftId") Long skiLiftId) {
+    @Operation(summary = "Get pisten by ski lift", description = "Retrieves all ski slopes associated with a specific ski lift")
+    @APIResponse(responseCode = "200", description = "List of pisten retrieved successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = PisteDTO.class, type = SchemaType.ARRAY)))
+    @APIResponse(responseCode = "404", description = "Ski lift not found")
+    public Response getPistenBySkiLift(
+        @Parameter(description = "Ski lift ID", required = true) @PathParam("skiLiftId") Long skiLiftId) {
         SkiLift skiLift = skiLiftRepository.findById(skiLiftId);
         if (skiLift == null) {
             return Response.status(Response.Status.NOT_FOUND)
@@ -65,7 +89,13 @@ public class PisteResource {
 
     @POST
     @Transactional
-    public Response createPiste(PisteDTO pisteDTO) {
+    @Operation(summary = "Create new piste", description = "Creates a new ski slope in the system")
+    @APIResponse(responseCode = "201", description = "Piste created successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = PisteDTO.class)))
+    @APIResponse(responseCode = "400", description = "Invalid input data")
+    public Response createPiste(
+        @Parameter(description = "Piste data", required = true) PisteDTO pisteDTO) {
         Piste piste = new Piste();
         piste.setName(pisteDTO.getName());
         piste.setSchwierigkeitsgrad(pisteDTO.getSchwierigkeitsgrad());
@@ -85,7 +115,14 @@ public class PisteResource {
     @PUT
     @Path("/{id}")
     @Transactional
-    public Response updatePiste(@PathParam("id") Long id, PisteDTO pisteDTO) {
+    @Operation(summary = "Update piste", description = "Updates an existing ski slope's information")
+    @APIResponse(responseCode = "200", description = "Piste updated successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = PisteDTO.class)))
+    @APIResponse(responseCode = "404", description = "Piste not found")
+    public Response updatePiste(
+        @Parameter(description = "Piste ID", required = true) @PathParam("id") Long id,
+        @Parameter(description = "Updated piste data", required = true) PisteDTO pisteDTO) {
         Piste piste = pisteRepository.findById(id);
         if (piste == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -109,7 +146,11 @@ public class PisteResource {
     @DELETE
     @Path("/{id}")
     @Transactional
-    public Response deletePiste(@PathParam("id") Long id) {
+    @Operation(summary = "Delete piste", description = "Deletes a ski slope from the system")
+    @APIResponse(responseCode = "204", description = "Piste deleted successfully")
+    @APIResponse(responseCode = "404", description = "Piste not found")
+    public Response deletePiste(
+        @Parameter(description = "Piste ID", required = true) @PathParam("id") Long id) {
         Piste piste = pisteRepository.findById(id);
         if (piste == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
