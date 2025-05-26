@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { pisteService, skiLiftService } from '../services/localStorageService';
+import { pisteService, skiLiftService } from '../services/apiService';
 
 function PisteForm() {
     const [name, setName] = useState('');
@@ -7,40 +7,47 @@ function PisteForm() {
     const [laenge, setLaenge] = useState('');
     const [skiliftId, setSkiliftId] = useState('');
     const [skiLifts, setSkiLifts] = useState([]);
-    const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         // Load available ski lifts
-        const loadSkiLifts = () => {
+        const loadSkiLifts = async () => {
             try {
-                const data = skiLiftService.getAll();
+                setLoading(true);
+                const data = await skiLiftService.getAll();
                 setSkiLifts(data);
             } catch (err) {
                 console.error('Error loading ski lifts:', err);
                 setError('Failed to load ski lifts');
+            } finally {
+                setLoading(false);
             }
         };
         loadSkiLifts();
     }, []);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setSuccess(false);
         setError(null);
 
-        const newPiste = {
-            name,
-            schwierigkeitsgrad,
-            laenge: parseFloat(laenge),
-            skiLift: {
-                id: parseInt(skiliftId),
-            },
-        };
+        // Validate required fields
+        if (!name || !schwierigkeitsgrad || !laenge || !skiliftId) {
+            setError('All fields are required');
+            return;
+        }
 
         try {
-            pisteService.create(newPiste);
-            setSuccess(true);
+            setLoading(true);
+            const newPiste = {
+                name,
+                schwierigkeitsgrad,
+                laenge: parseFloat(laenge),
+                skiLiftId: parseInt(skiliftId)
+            };
+
+            await pisteService.create(newPiste);
+            
             // Reset form
             setName('');
             setSchwierigkeitsgrad('');
@@ -48,20 +55,16 @@ function PisteForm() {
             setSkiliftId('');
         } catch (error) {
             console.error('Error creating Piste:', error);
-            setError('Failed to create Piste. Please try again.');
+            setError(error.message || 'Failed to create Piste');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div className="bg-white rounded-lg p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">Add New Piste</h2>
-            
-            {success && (
-                <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                    <span className="block sm:inline">Piste successfully created!</span>
-                </div>
-            )}
-            
+
             {error && (
                 <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                     <span className="block sm:inline">{error}</span>
@@ -80,6 +83,7 @@ function PisteForm() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ski-blue focus:border-ski-blue"
                         required
                         placeholder="Enter piste name"
+                        disabled={loading}
                     />
                 </div>
 
@@ -92,6 +96,7 @@ function PisteForm() {
                         onChange={(e) => setSchwierigkeitsgrad(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ski-blue focus:border-ski-blue"
                         required
+                        disabled={loading}
                     >
                         <option value="">Select difficulty</option>
                         <option value="Leicht">Leicht</option>
@@ -113,6 +118,7 @@ function PisteForm() {
                         min="0.1"
                         step="0.1"
                         placeholder="Enter length in kilometers"
+                        disabled={loading}
                     />
                 </div>
 
@@ -125,6 +131,7 @@ function PisteForm() {
                         onChange={(e) => setSkiliftId(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ski-blue focus:border-ski-blue"
                         required
+                        disabled={loading}
                     >
                         <option value="">Select a ski lift</option>
                         {skiLifts.map((skiLift) => (
@@ -135,15 +142,22 @@ function PisteForm() {
                     </select>
                 </div>
 
-                <div className="pt-4">
+                <div>
                     <button
                         type="submit"
-                        className="w-full bg-ski-blue text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ski-blue flex items-center justify-center space-x-2"
+                        className="w-full bg-ski-blue text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ski-blue flex items-center justify-center space-x-2 disabled:opacity-50"
+                        disabled={loading}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                        </svg>
-                        <span>Add Piste</span>
+                        {loading ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        ) : (
+                            <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                                </svg>
+                                <span>Add Piste</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </form>

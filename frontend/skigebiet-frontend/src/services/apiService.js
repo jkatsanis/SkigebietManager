@@ -4,43 +4,37 @@ import { notificationService } from './notificationService';
 const API_BASE_URL = 'http://localhost:8080';
 
 // Helper function for API calls
-const apiCall = async (endpoint, options = {}) => {
+const apiCall = async (endpoint, method = 'GET', body = null) => {
     try {
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            ...options,
+        const options = {
+            method,
             headers: {
                 'Content-Type': 'application/json',
-                ...options.headers,
             },
-        });
+        };
+
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+        const data = await response.json();
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            const errorMessage = errorData.message || response.statusText;
-            notificationService.error(`Operation failed: ${errorMessage}`);
+            const errorMessage = data.message || 'Operation failed';
+            notificationService.error(errorMessage);
             throw new Error(errorMessage);
         }
 
-        // For 204 No Content responses
-        if (response.status === 204) {
-            return null;
-        }
-
-        const data = await response.json();
-        
-        // Show success message for POST, PUT, DELETE operations
-        if (options.method) {
-            const action = options.method === 'POST' ? 'created' :
-                          options.method === 'PUT' ? 'updated' :
-                          options.method === 'DELETE' ? 'deleted' : '';
-            if (action) {
-                notificationService.success(`Successfully ${action}`);
-            }
+        // Show success notification for POST, PUT, DELETE operations
+        if (method !== 'GET') {
+            const action = method === 'POST' ? 'created' : method === 'PUT' ? 'updated' : 'deleted';
+            notificationService.success(`Successfully ${action}`);
         }
 
         return data;
     } catch (error) {
-        if (!error.message.includes('Operation failed')) {
+        if (error.message !== 'Operation failed') {
             notificationService.error('Network error or server is not responding');
         }
         throw error;
@@ -51,17 +45,28 @@ const apiCall = async (endpoint, options = {}) => {
 const skiLiftService = {
     getAll: () => apiCall('/api/skilifts'),
     getById: (id) => apiCall(`/api/skilifts/${id}`),
-    create: (skiLift) => apiCall('/api/skilifts', {
-        method: 'POST',
-        body: JSON.stringify(skiLift),
-    }),
-    update: (id, skiLift) => apiCall(`/api/skilifts/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(skiLift),
-    }),
-    delete: (id) => apiCall(`/api/skilifts/${id}`, {
-        method: 'DELETE',
-    }),
+    create: async (skiLift) => {
+        try {
+            // Validate ski lift data
+            if (!skiLift.name || !skiLift.typ || !skiLift.kapazitaet) {
+                throw new Error('Name, type, and capacity are required');
+            }
+
+            // Format ski lift data according to API expectations
+            const skiLiftData = {
+                name: skiLift.name,
+                typ: skiLift.typ,
+                kapazitaet: parseInt(skiLift.kapazitaet)
+            };
+
+            return await apiCall('/api/skilifts', 'POST', skiLiftData);
+        } catch (error) {
+            notificationService.error(error.message);
+            throw error;
+        }
+    },
+    update: (id, skiLift) => apiCall(`/api/skilifts/${id}`, 'PUT', skiLift),
+    delete: (id) => apiCall(`/api/skilifts/${id}`, 'DELETE'),
     getPisten: (id) => apiCall(`/api/skilifts/${id}/pisten`),
 };
 
@@ -69,36 +74,74 @@ const skiLiftService = {
 const pisteService = {
     getAll: () => apiCall('/api/pisten'),
     getById: (id) => apiCall(`/api/pisten/${id}`),
-    create: (piste) => apiCall('/api/pisten', {
-        method: 'POST',
-        body: JSON.stringify(piste),
-    }),
-    update: (id, piste) => apiCall(`/api/pisten/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(piste),
-    }),
-    delete: (id) => apiCall(`/api/pisten/${id}`, {
-        method: 'DELETE',
-    }),
-    getBySkiLiftId: (skiLiftId) => apiCall(`/api/pisten/skilift/${skiLiftId}`),
+    create: async (piste) => {
+        try {
+            // Validate piste data
+            if (!piste.name || !piste.schwierigkeitsgrad || !piste.laenge || !piste.skiLiftId) {
+                throw new Error('Name, difficulty, length, and ski lift are required');
+            }
+
+            // Format piste data according to API expectations
+            const pisteData = {
+                name: piste.name,
+                schwierigkeitsgrad: piste.schwierigkeitsgrad,
+                laenge: parseFloat(piste.laenge),
+                skiLift: {
+                    id: parseInt(piste.skiLiftId)
+                }
+            };
+
+            return await apiCall('/api/pisten', 'POST', pisteData);
+        } catch (error) {
+            notificationService.error(error.message);
+            throw error;
+        }
+    },
+    update: (id, piste) => apiCall(`/api/pisten/${id}`, 'PUT', piste),
+    delete: (id) => apiCall(`/api/pisten/${id}`, 'DELETE'),
+    getBySkiLiftId: (skiLiftId) => apiCall(`/api/pisten/skilift/${skiLiftId}`)
 };
 
 // Ticket operations
 const ticketService = {
     getAll: () => apiCall('/api/tickets'),
     getById: (id) => apiCall(`/api/tickets/${id}`),
-    create: (ticket) => apiCall('/api/tickets', {
-        method: 'POST',
-        body: JSON.stringify(ticket),
-    }),
-    update: (id, ticket) => apiCall(`/api/tickets/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(ticket),
-    }),
-    delete: (id) => apiCall(`/api/tickets/${id}`, {
-        method: 'DELETE',
-    }),
-    getByUserId: (userId) => apiCall(`/api/tickets/user/${userId}`),
+    create: async (ticket) => {
+        try {
+            // Validate ticket data
+            if (!ticket.userId || !ticket.ticketType) {
+                throw new Error('User ID and ticket type are required');
+            }
+
+            // Format ticket data according to API expectations
+            const ticketData = {
+                ticketType: ticket.ticketType,
+                date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
+                validFrom: ticket.ticketType === 'Ganztages' ? '08:00' : '12:00',
+                validUntil: '16:00',
+                user: {
+                    id: parseInt(ticket.userId)
+                }
+            };
+
+            return await apiCall('/api/tickets', 'POST', ticketData);
+        } catch (error) {
+            notificationService.error(error.message);
+            throw error;
+        }
+    },
+    update: (id, ticket) => apiCall(`/api/tickets/${id}`, 'PUT', ticket),
+    delete: (id) => apiCall(`/api/tickets/${id}`, 'DELETE'),
+    getByUserId: async (userId) => {
+        try {
+            const tickets = await apiCall(`/api/tickets/user/${userId}`);
+            return Array.isArray(tickets) ? tickets : [];
+        } catch (error) {
+            console.error('Error fetching tickets for user:', error);
+            return [];
+        }
+    },
+    getByPisteId: (pisteId) => apiCall(`/api/tickets/piste/${pisteId}`)
 };
 
 // User operations
@@ -106,17 +149,9 @@ const userService = {
     getAll: () => apiCall('/api/users'),
     getById: (id) => apiCall(`/api/users/${id}`),
     getByEmail: (email) => apiCall(`/api/users/email/${email}`),
-    create: (user) => apiCall('/api/users', {
-        method: 'POST',
-        body: JSON.stringify(user),
-    }),
-    update: (id, user) => apiCall(`/api/users/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(user),
-    }),
-    delete: (id) => apiCall(`/api/users/${id}`, {
-        method: 'DELETE',
-    }),
+    create: (user) => apiCall('/api/users', 'POST', user),
+    update: (id, user) => apiCall(`/api/users/${id}`, 'PUT', user),
+    delete: (id) => apiCall(`/api/users/${id}`, 'DELETE'),
     getTickets: (id) => apiCall(`/api/users/${id}/tickets`),
 };
 

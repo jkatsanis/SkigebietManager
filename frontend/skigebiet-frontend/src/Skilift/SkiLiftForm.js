@@ -1,46 +1,53 @@
 import React, { useState } from 'react';
-import { skiLiftService } from '../services/localStorageService';
+import { skiLiftService } from '../services/apiService';
 
-function SkiLiftForm() {
+function SkiLiftForm({ onSkiLiftAdded }) {
     const [name, setName] = useState('');
     const [typ, setTyp] = useState('');
     const [kapazitaet, setKapazitaet] = useState('');
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess(false);
+        setError(null);
 
-        const newSkiLift = {
-            name,
-            typ,
-            kapazität: parseInt(kapazitaet),
-        };
+        // Validate required fields
+        if (!name || !typ || !kapazitaet) {
+            setError('All fields are required');
+            return;
+        }
 
         try {
-            skiLiftService.create(newSkiLift);
-            setSuccess(true);
-            // Clear the form after submission
+            setLoading(true);
+            const newSkiLift = {
+                name,
+                typ,
+                kapazitaet: parseInt(kapazitaet)
+            };
+
+            await skiLiftService.create(newSkiLift);
+            
+            // Reset form
             setName('');
             setTyp('');
             setKapazitaet('');
-        } catch (err) {
-            console.error('Error creating SkiLift:', err);
-            setError('Failed to create SkiLift. Please try again.');
+
+            // Notify parent component to refresh ski lifts
+            if (onSkiLiftAdded) {
+                onSkiLiftAdded();
+            }
+        } catch (error) {
+            console.error('Error creating SkiLift:', error);
+            setError(error.message || 'Failed to create Ski Lift');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
         <div className="bg-white rounded-lg p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-6">Add New Ski Lift</h2>
-
-            {success && (
-                <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
-                    <span className="block sm:inline">Ski Lift successfully created!</span>
-                </div>
-            )}
 
             {error && (
                 <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
@@ -60,6 +67,7 @@ function SkiLiftForm() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ski-blue focus:border-ski-blue"
                         required
                         placeholder="Enter ski lift name"
+                        disabled={loading}
                     />
                 </div>
 
@@ -72,6 +80,7 @@ function SkiLiftForm() {
                         onChange={(e) => setTyp(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-ski-blue focus:border-ski-blue"
                         required
+                        disabled={loading}
                     >
                         <option value="">Select a type</option>
                         <option value="Sessellift">Sessellift</option>
@@ -91,18 +100,26 @@ function SkiLiftForm() {
                         required
                         min="1"
                         placeholder="Enter capacity"
+                        disabled={loading}
                     />
                 </div>
 
-                <div className="pt-4">
+                <div>
                     <button
                         type="submit"
-                        className="w-full bg-ski-blue text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ski-blue flex items-center justify-center space-x-2"
+                        className="w-full bg-ski-blue text-white py-2 px-4 rounded-md hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ski-blue flex items-center justify-center space-x-2 disabled:opacity-50"
+                        disabled={loading}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                        </svg>
-                        <span>Add Ski Lift</span>
+                        {loading ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        ) : (
+                            <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+                                </svg>
+                                <span>Add Ski Lift</span>
+                            </>
+                        )}
                     </button>
                 </div>
             </form>

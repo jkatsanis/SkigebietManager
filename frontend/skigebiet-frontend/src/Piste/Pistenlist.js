@@ -1,22 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { pisteService } from '../services/localStorageService';
+import { pisteService } from '../services/apiService';
 
 function PistenList() {
     const [pisten, setPisten] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Fetch all Pisten data from localStorage
-    const getAllPisten = () => {
+    // Fetch all Pisten data from API
+    const getAllPisten = async () => {
         setLoading(true);
         setError(null);
 
         try {
-            const data = pisteService.getAll();
+            const data = await pisteService.getAll();
             setPisten(data);
-            setLoading(false);
         } catch (error) {
             setError('Failed to fetch Pisten');
+            console.error('Error fetching Pisten:', error);
+        } finally {
             setLoading(false);
         }
     };
@@ -45,12 +46,19 @@ function PistenList() {
                 <h2 className="text-xl font-semibold text-gray-800">Pisten List</h2>
                 <button 
                     onClick={getAllPisten}
-                    className="px-4 py-2 bg-ski-blue text-white rounded-md hover:bg-blue-800 transition-colors flex items-center space-x-2"
+                    className="px-4 py-2 bg-ski-blue text-white rounded-md hover:bg-blue-800 transition-colors flex items-center space-x-2 disabled:opacity-50"
+                    disabled={loading}
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                    </svg>
-                    <span>Refresh</span>
+                    {loading ? (
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    ) : (
+                        <>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                            </svg>
+                            <span>Refresh</span>
+                        </>
+                    )}
                 </button>
             </div>
 

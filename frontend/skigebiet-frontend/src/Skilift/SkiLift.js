@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { skiLiftService } from '../services/localStorageService';
+import { skiLiftService } from '../services/apiService';
 
 function SkiLiftDisplay() {
     const [skiLifts, setSkiLifts] = useState([]);
@@ -7,16 +7,21 @@ function SkiLiftDisplay() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Fetch the list of SkiLifts from localStorage when the component mounts
-        try {
-            const data = skiLiftService.getAll();
-            setSkiLifts(data);
-            setLoading(false);
-        } catch (err) {
-            console.error('Error fetching SkiLifts:', err);
-            setError('Failed to fetch SkiLifts. Please try again later.');
-            setLoading(false);
-        }
+        // Fetch the list of SkiLifts from API when the component mounts
+        const loadSkiLifts = async () => {
+            try {
+                setLoading(true);
+                const data = await skiLiftService.getAll();
+                setSkiLifts(data);
+            } catch (err) {
+                console.error('Error fetching SkiLifts:', err);
+                setError('Failed to fetch SkiLifts. Please try again later.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadSkiLifts();
     }, []);
 
     const getTypeIcon = (type) => {

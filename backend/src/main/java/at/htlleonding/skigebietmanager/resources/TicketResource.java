@@ -19,6 +19,8 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,9 +100,26 @@ public class TicketResource {
         @Parameter(description = "Ticket data", required = true) TicketDTO ticketDTO) {
         Ticket ticket = new Ticket();
         ticket.setTicketType(ticketDTO.getTicketType());
-        ticket.setDate(ticketDTO.getDate());
-        ticket.setValidFrom(ticketDTO.getValidFrom());
-        ticket.setValidUntil(ticketDTO.getValidUntil());
+        
+        // Set default values for required fields if not provided
+        if (ticketDTO.getDate() == null) {
+            ticket.setDate(LocalDate.now());
+        } else {
+            ticket.setDate(ticketDTO.getDate());
+        }
+        
+        if (ticketDTO.getValidFrom() == null) {
+            ticket.setValidFrom(ticketDTO.getTicketType().equals("Ganztages") ? 
+                LocalTime.of(8, 0) : LocalTime.of(12, 0));
+        } else {
+            ticket.setValidFrom(ticketDTO.getValidFrom());
+        }
+        
+        if (ticketDTO.getValidUntil() == null) {
+            ticket.setValidUntil(LocalTime.of(16, 0));
+        } else {
+            ticket.setValidUntil(ticketDTO.getValidUntil());
+        }
         
         if (ticketDTO.getUser() != null) {
             User user = userRepository.findById(ticketDTO.getUser().getId());
